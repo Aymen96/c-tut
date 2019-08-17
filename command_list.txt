@@ -1,0 +1,10 @@
+pwd				# where am I? 
+
+ls /tmp/os 		# show dir content
+
+cat test.c 		# show me content of file
+
+gcc test.c -o test  	# compile with gcc
+
+./test					# execute
+

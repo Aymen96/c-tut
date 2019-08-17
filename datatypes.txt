@@ -1,0 +1,12 @@
+char >= 8 bit
+short >= 16 bit
+int >= 16 bit (per Spezifikation >= 32 bit)
+long >= 32 bit
+long long >= 64 bit
+
+float meinst 32 bit
+double meist 64 bit
+
+unsigned voranstellen für vorzeichenlose Typen (z.B. unsigned int)
+
+sizeof(something) (z.B. sizeof(chart) = 1)
