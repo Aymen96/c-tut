@@ -97,9 +97,9 @@ int main()
 
     /*
     Lesson learned:
-    Hier should two threads print out two sterns but the behavior is not always the same and unexpectable
-    This happen because the content of the char variable has been changed from one thread just before the
-    other thread prints that out. Here Synchronization is missing.
+    First I initialized a mutex. Each thread when called enters the critical section of the mutex. If the mutex is full with the other thread,
+    this thread waits otherwise it enters the critical section.
+    This whole process guarantees that a race condition does not happen
     */
     return 0;
 }
