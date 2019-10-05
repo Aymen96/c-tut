@@ -11,7 +11,7 @@ int randommethod() {
 };
 
 // Problem: Kann nicht auf array zugreifen außerhalb vom Array
-// Lösung: malloc(n) zum Rescue
+// Lösung: malloc(n) zum Rescue // n in Bytes
 int *makearray(int numelements)
 {
     int *array = (int*)malloc(numelements * sizeof(int));
