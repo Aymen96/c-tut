@@ -1,9 +1,12 @@
 #include <stdio.h>
+#include "../include/process_manager.h"
 
 int start_shell ()
 {
     printf("MyShell Version 1.0 Created by Aymen Hachicha on 05/10/2019\n");
     printf("Shell started ..\n");
+    char *args[] = {"a", NULL};
+    run_program("./user_manager", args);
     return 0;
 };
 
