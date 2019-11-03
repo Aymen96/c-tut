@@ -19,7 +19,6 @@ uint64_t hashString(char *c)
  */
 int insert(hashtable *table, char *key, int value)
 {
-	(void) table; (void) key; (void) value;
     int pos = hashString(key) % table->capacity;
     element el;
     el.key = key;
