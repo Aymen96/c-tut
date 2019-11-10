@@ -1,0 +1,12 @@
+build program with:
+gcc -g main.c func.c -o out
+this will create the out executable file.
+
+check data segments with:
+readelf -hSs out
+
+find the register for return value with:
+objdump -Sd out
+
+check used libraries with:
+ldd out
