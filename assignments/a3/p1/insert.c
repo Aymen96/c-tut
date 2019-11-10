@@ -26,7 +26,7 @@ void insert(int **array, size_t *length, size_t *capacity, int z)
         int* array2 = (int*) malloc(sizeof(int) * *capacity);
         memcpy(array2, *array, *length);
         /*
-        // Question: why does the following not working instead of using memcpy
+        // Question: why does the following not replace using memcpy
         // I copy manually the data, free array and then assign the pointer array
         // the pointer of the new array with the bigger capacity.
         // Would appreciate your help on this matter.
