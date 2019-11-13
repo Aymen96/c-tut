@@ -102,17 +102,24 @@ void dumpAllocator()
  */
 uint64_t roundUp(uint64_t n)
 {
-    (void) n;
-
-    //TODO: Implement
-    return 0;
+    int i = 1;
+    while((uint64_t)(16 * i) < n) i++;
+    return 16 * i;
 }
 
 void *my_malloc(uint64_t size)
 {
-    (void) size;
-
-    // TODO: Implement
+    uint64_t roundedSize = roundUp(size);
+    Block *nextBlock = _firstFreeBlock;
+    int count = 0;
+    while((nextBlock->size - HEADER_SIZE) <= roundedSize 
+        && nextBlock != NULL) {
+        nextBlock = nextBlock->next;
+        count++;
+    }
+    if(nextBlock == NULL) {
+        return NULL;
+    }
     return NULL;
 }
 
