@@ -1,5 +1,6 @@
 #include "malloc.h"
 
+#include <stdint.h>
 #include <stdio.h>
 #include <assert.h>
 
@@ -31,7 +32,7 @@ typedef struct _Block {
 
 #define HEADER_SIZE sizeof(Block)
 #define INV_HEADER_SIZE_MASK ~((uint64_t)HEADER_SIZE - 1)
-
+#define ALLOCATED_BLOCK_MAGIC (Block*)(0xbaadf00d)
 /*
  * This is the heap you should use.
  * 16 MiB heap space per default. The heap does not grow.
@@ -109,25 +110,42 @@ uint64_t roundUp(uint64_t n)
 
 void *my_malloc(uint64_t size)
 {
-    uint64_t roundedSize = roundUp(size);
+    uint64_t requestedSize = roundUp(size) + HEADER_SIZE;
     Block *nextBlock = _firstFreeBlock;
-    int count = 0;
-    while((nextBlock->size - HEADER_SIZE) <= roundedSize 
-        && nextBlock != NULL) {
+    while(nextBlock != NULL) {
+        // if entered make allocation
+        if(nextBlock->size <= requestedSize) {
+            // new block's size fits perfectly available block
+            if(nextBlock->size == requestedSize) {
+                // new free block
+                _firstFreeBlock = nextBlock->next;
+                // way to mark the next block as allocated
+               _firstFreeBlock->next = ALLOCATED_BLOCK_MAGIC;
+               return &nextBlock->data[0];
+            }
+            // free block is larger. split it into 2 blocks
+            const uint64_t rest = nextBlock->size - requestedSize;
+            // set new size
+            nextBlock->size = size;
+            // new first free block should be calculated
+            _firstFreeBlock = _getNextBlockBySize(nextBlock);
+            _firstFreeBlock->size = rest;
+            _firstFreeBlock->next = nextBlock->next;
+            return &nextBlock->data[0];
+        }
+        // no block large enough found. check next free block
         nextBlock = nextBlock->next;
-        count++;
-    }
-    if(nextBlock == NULL) {
-        return NULL;
     }
     return NULL;
 }
 
 void my_free(void *address)
 {
-    (void) address;
-
-    // TODO: Implement
+    if(address == NULL) {
+        return;
+    }
+    // -1 for the header size;
+    Block *block = (Block*)(address) -1;
 }
 
 
