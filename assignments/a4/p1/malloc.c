@@ -125,7 +125,6 @@ void *my_malloc(uint64_t size)
             }
             // free block is larger. split it into 2 blocks
             const uint64_t rest = nextBlock->size - requestedSize;
-            // set new size
             nextBlock->size = size;
             // new first free block should be calculated
             _firstFreeBlock = _getNextBlockBySize(nextBlock);
@@ -139,13 +138,37 @@ void *my_malloc(uint64_t size)
     return NULL;
 }
 
+void merge(Block* freeBlock) {
+    if(freeBlock->next != NULL) {
+            Block *nextBlock = _getNextBlockBySize(freeBlock);
+            if(nextBlock == freeBlock->next) {
+                freeBlock->size += nextBlock->size;
+                freeBlock->next = nextBlock->next;
+            }
+        }
+}
+
 void my_free(void *address)
 {
     if(address == NULL) {
         return;
     }
-    // -1 for the header size;
+
+    // Address is pointing to data block. Remove one Header size;
     Block *block = (Block*)(address) -1;
+    Block *freeBlock = _firstFreeBlock;
+    if(freeBlock == NULL || freeBlock > block) {
+        _firstFreeBlock = block;
+        block->next = freeBlock;
+    } else {
+        while (freeBlock->next != NULL && freeBlock->next < block) {
+            freeBlock = freeBlock->next;
+        }
+        block->next = freeBlock->next;
+        freeBlock->next = block;
+    }
+    merge(block);
+    merge(freeBlock);
 }
 
 
