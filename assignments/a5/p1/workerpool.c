@@ -18,11 +18,12 @@ static volatile int _done = 1;
  * Ringbuffer to hold jobs for the workers
  */
 WorkItem _workItems[MAX_JOBS];
-uint32_t _nextJob = 0;
-uint32_t _numJobs = 0;
+uint32_t _nextJob = 0; // the index of the next valid task
+uint32_t _numJobs = 0; // the number of jobs currently in the buffer
 
-// ---> TODO: Add variables as neeed <---
-
+// array of threads
+static pthread_t *workers = NULL;
+static uint32_t  i = 0;
 /*
  * The id of the current thread. The id is initialized by the workers main
  * routine at the beginning. The __thread specifier will place the variable
@@ -57,12 +58,14 @@ static pthread_cond_t _cv;
  */
 int _enqueue(WorkFunc func, int arg)
 {
-    (void)func;
-    (void)arg;
-
-    // ---> TODO: Implement <---
-
-    return -1;
+    if(_numJobs == MAX_JOBS) {
+        return -1;
+    }
+    int nextToTail = (_nextJob + _numJobs) % MAX_JOBS;
+    _workItems[nextToTail].func = func;
+    _workItems[nextToTail].arg = arg;
+    _numJobs++;
+    return 0;
 }
 
 /*
@@ -71,11 +74,13 @@ int _enqueue(WorkFunc func, int arg)
  */
 int _dequeue(WorkItem *item)
 {
-    (void)item;
-
-    // ---> TODO: Implement <---
-
-    return -1;
+    if(_numJobs == 0) {
+        return -1;
+    }
+    *item = _workItems[_nextJob];
+    _numJobs--;
+    _nextJob = (_nextJob + 1) % MAX_JOBS;
+    return 0;
 }
 
 /*
@@ -108,7 +113,11 @@ void* _workerMain(void *arg)
     // Initialize the thread local worker id variable.
     _workerId = (int)((intptr_t)arg);
 
-    // ---> TODO: Implement fetching and execution of jobs <---
+    WorkItem item;
+    while(_waitForWork(&item)) {
+        assert(item.func != NULL);
+        item.func(arg);
+    }
 
     return NULL; // Will implicitly call pthread_exit() with NULL;
 }
@@ -119,10 +128,18 @@ void* _workerMain(void *arg)
  */
 static int _startWorkers(uint32_t num)
 {
-    (void)num;
-
-    // ---> TODO: Implement <---
-
+    for(i = 0; i < num; i++) {
+        // args are address to the thread variable
+        // workerMain is the start_routine and should be a func
+        // that the thread should execute and i the arg for it
+        int r = pthread_create(&workers[i], 
+                                NULL,
+                                _workerMain,
+                                (void*)((intptr_t)i));
+        if(r != 0) {
+            return -1;
+        }
+    }
     return -1;
 }
 
@@ -132,7 +149,14 @@ static int _startWorkers(uint32_t num)
  */
 static void _waitForWorkers(void)
 {
-    // ---> TODO: Implement <---
+    // if worker pool was not initialized return error msg
+    if(workers == NULL) {
+        return;
+    }
+    while(i > 0) {
+        pthread_join(workers[i - 1], NULL);
+        i--;
+    }
 }
 
 /*
@@ -156,8 +180,14 @@ int initializeWorkerPool(void)
         return -1;
     }
 
-    uint32_t n = 4;
-    // ---> TODO: Initialize n and your variables here <---
+    // This comes from stackoverflow. Don't trust it..
+    long number_of_processors = sysconf(_SC_NPROCESSORS_ONLN);
+    if(number_of_processors == -1) {
+        return -1;
+    }
+    uint32_t n = number_of_processors < 4 ? 4 : number_of_processors;
+    // allocate space for threads data
+    workers = (pthread_t*)malloc(sizeof(pthread_t) * n);
 
     // Denote the future workers that they should not exit right away, but
     // wait for work. We use a software barrier to prevent the compiler from
