@@ -185,9 +185,12 @@ int initializeWorkerPool(void)
     if(number_of_processors == -1) {
         return -1;
     }
-    uint32_t n = number_of_processors < 4 ? 4 : number_of_processors;
+    uint32_t n = (number_of_processors < 4) ? 4 : number_of_processors;
     // allocate space for threads data
     workers = (pthread_t*)malloc(sizeof(pthread_t) * n);
+    if (workers == NULL) {
+        goto error;
+    }
 
     // Denote the future workers that they should not exit right away, but
     // wait for work. We use a software barrier to prevent the compiler from
@@ -230,7 +233,11 @@ void finalizeWorkerPool(void)
     // All workers should have ended at this point. Clean up.
     pthread_cond_destroy(&_cv);
 
-    // ---> TODO: Free your variables here <---
+    assert(i == 0);
+    if (workers != NULL) {
+        free(workers);
+        workers = NULL;
+    }
 }
 
 /*
