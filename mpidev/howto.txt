@@ -1,0 +1,4 @@
+How to install openMPI
+
+sudo apt-get update -y
+sudo apt-get install -y openmpi-bin
