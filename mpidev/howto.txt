@@ -2,3 +2,8 @@ How to install openMPI
 
 sudo apt-get update -y
 sudo apt-get install -y openmpi-bin
+
+How to run C program with MPI
+
+mpicc program.c
+mpirun -np number_of_threads a.out
